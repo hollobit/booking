@@ -36,6 +36,11 @@ creates the vote.
 - `delete_availability` { finder, participant_id, participant_key }
 - `get_results` { finder, timezone?, limit? } → `best` (ranges ranked by people available) and
   `nobody_unavailable`, each with UTC `start`/`end` and a readable `local` time.
+- `find_times` { finder, part_of_day?, working_hours?, between?, duration_hours?, weekdays_only?, timezone?, limit? }
+  → `candidates`: meeting starts, one per hour on the hour, inside a daily window, best first. Use it for
+  "find a time in the afternoon": `part_of_day` is "morning" (start of work–12:00), "afternoon" (12:00–end
+  of work), "evening" (end of work–22:00), "working_hours" (default) or "any". Working hours default to
+  09:00–18:00 in `timezone`; change them with `working_hours`, or pass an exact window in `between`.
 - `announce_candidates` { finder: admin link, candidates: [range] } → shows candidates to everyone.
 - `set_finder_deadline` { finder: admin link, deadline: ISO 8601 | null } → moves or removes the answer deadline.
 - `set_finder_status` { finder: admin link, status: "open" | "closed" }
@@ -47,7 +52,8 @@ creates the vote.
 1. `create_finder` for the candidate dates, in the organizer's time zone.
 2. Give `participant_url` to the people involved. They answer in the web app or through their own agent.
 3. For your own user: read their calendar's busy times and call `submit_availability`.
-4. `get_results` and tell the user the top ranges in their time zone.
+4. `get_results` and tell the user the top ranges in their time zone; or `find_times` when the user asks
+   for a part of the day ("in the afternoon") or a meeting length.
 5. After the user agrees: `announce_candidates`, then optionally `create_poll_from_candidates`.
 
 ## Rules for agents
