@@ -1,0 +1,1 @@
+const t="booking.pollPrefill.v1";function l(e){try{sessionStorage.setItem(t,JSON.stringify(e))}catch{}}function r(){try{const e=sessionStorage.getItem(t);return e?JSON.parse(e):null}catch{return null}}function o(){try{sessionStorage.removeItem(t)}catch{}}export{o as c,r as p,l as s};
