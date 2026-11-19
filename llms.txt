@@ -27,12 +27,15 @@ creates the vote.
   → participant_url (share it), admin_url and admin_key (keep private).
 - `get_finder` { finder, timezone? } → dates, base time zone, status, answer `deadline`, `accepting_answers`,
   who answered, announced candidates.
-- `submit_availability` { finder, name, timezone?, available?, if_need_be?, unavailable?, free_window?,
-  participant_id?, participant_key? } → participant_id, participant_key (keep both to update or delete).
+- `submit_availability` { finder, name, timezone?, available?, if_need_be?, unavailable?, google_freebusy?,
+  free_window?, participant_id?, participant_key? } → participant_id, participant_key (keep both to update or delete).
   Ranges are `{ "start": "2026-10-21T09:00", "end": "2026-10-21T12:00" }`; a time without an offset is
   read in `timezone`. From a calendar: busy blocks go in `unavailable`, the hours the person is willing
   to meet go in `free_window` (`{ "start": "09:00", "end": "18:00" }`); the rest of the window becomes
   available. Precedence: unavailable > if_need_be > available > free_window.
+  With Google Calendar, pass the freebusy.query answer unchanged as `google_freebusy`
+  (`{ timeMin, timeMax, calendars: { <id>: { busy: [...] } } }`, or just its busy list): busy blocks of all
+  calendars count as unavailable. A calendar Google reported `errors` for is refused (INVALID), not read as free.
 - `delete_availability` { finder, participant_id, participant_key }
 - `get_results` { finder, timezone?, limit? } → `best` (ranges ranked by people available) and
   `nobody_unavailable`, each with UTC `start`/`end` and a readable `local` time.
@@ -52,8 +55,10 @@ Polls (fixed candidate times to vote on; voting link `…#p-<id>`, organizer lin
 - `get_poll` { poll, timezone? } → candidate times with `option_id`, yes / if need be / no counts best first,
   whether it still takes answers.
 - `vote` { poll, name, answers?: { option_id: "yes" | "maybe" | "no" }, available?, if_need_be?,
-  unavailable?, timezone?, participant_id?, participant_key? } → answers for one person. Ranges map to
-  options: overlapping `unavailable` = no, fully inside `if_need_be` = maybe, fully inside `available` = yes.
+  unavailable?, google_freebusy?, timezone?, participant_id?, participant_key? } → answers for one person.
+  Ranges map to options: overlapping `unavailable` = no, fully inside `if_need_be` = maybe, fully inside
+  `available` = yes. With `google_freebusy`, options clashing with a busy block are no and the other options
+  inside its timeMin–timeMax (all options if those are missing) are yes.
 - `confirm_poll_time` { poll: admin link, option_id } → confirms the meeting time and closes the poll.
 
 ## Typical flow
